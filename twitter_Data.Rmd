@@ -1,0 +1,35 @@
+#Scraping data from twitter
+
+```{r,message=FALSE}
+library(rtweet)
+library(tidyverse)
+```
+
+```{r}
+auth_setup_default()
+
+apple_data <- search_tweets(q = "Apple",n = 10000, include_rts = FALSE)
+View(apple_data)
+
+apple_data_clean <- cbind(apple_data,users_data(apple_data)[,c("id","id_str","name","screen_name")])
+
+apple_data_clean <- apple_data_clean[,!duplicated(colnames(apple_data_clean))]
+
+ts_plot(apple_data_clean, by = "1 minute")+
+  theme_minimal()+
+  labs(title = "Apple popularitiy",
+       subtitle = "Aggregated by 15 minute intervals",
+       caption = "Data collected from rtweets",
+       x = "Time",
+       y = "Frequency")+
+  theme(plot.title = element_text(face = "bold", colour = "blue"))
+
+apple_data_clean %>%
+  count(screen_name, sort = T)%>%
+  mutate(screen_name = reorder(screen_name,n))%>%
+  top_n(10)%>%
+  ggplot()+
+  geom_col(aes(x = screen_name, y = n))+
+  theme(axis.text.x = element_text(angle = 30,hjust = 1,vjust = 1))
+```
+
